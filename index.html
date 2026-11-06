@@ -10,8 +10,20 @@
   <h1>Interactive Venue Ticketing</h1>
   <p id="status-message">Loading venue...</p>
 
-  <div class="stage">STAGE</div>
-  <div id="seat-map" class="venue"></div>
+  <div class="layout">
+    <div class="map-area">
+      <div class="stage">STAGE</div>
+      <div id="seat-map" class="venue"></div>
+    </div>
+
+    <aside class="side-panel">
+      <h2>Seat details</h2>
+      <div id="seat-details">
+        <p class="hint">Click a seat to see its details.</p>
+      </div>
+      <button type="button" id="add-to-cart-btn" disabled>ADD TO CART</button>
+    </aside>
+  </div>
 
   <script src="data.js"></script>
   <script src="script.js"></script>
