@@ -1,13 +1,21 @@
 const seatMap = document.getElementById("seat-map");
 const statusMessage = document.getElementById("status-message");
 const seatDetails = document.getElementById("seat-details");
+const addToCartBtn = document.getElementById("add-to-cart-btn");
+const cartList = document.getElementById("cart-list");
+const cartEmpty = document.getElementById("cart-empty");
+const cartTotal = document.getElementById("cart-total");
 
 const seatsById = {};
-
+let cart = [];
 let inspectedSeatId = null;
 
 function rowLetter(index) {
   return String.fromCharCode(65 + index);
+}
+
+function findSeatButton(seatId) {
+  return seatMap.querySelector('[data-id="' + seatId + '"]');
 }
 
 function createSeat(section, rowName, seatNumber) {
@@ -82,6 +90,9 @@ function showSeatDetails(seat) {
   if (seat.unavailable) {
     statusText = "Unavailable (sold)";
     statusClass = "status-unavailable";
+  } else if (cart.includes(seat.id)) {
+    statusText = "In your cart";
+    statusClass = "status-incart";
   }
 
   seatDetails.innerHTML = `
@@ -93,18 +104,114 @@ function showSeatDetails(seat) {
   `;
 }
 
+function updateAddButton() {
+  if (inspectedSeatId === null) {
+    addToCartBtn.disabled = true;
+    addToCartBtn.textContent = "ADD TO CART";
+    return;
+  }
+
+  const seat = seatsById[inspectedSeatId];
+
+  if (seat.unavailable) {
+    addToCartBtn.disabled = true;
+    addToCartBtn.textContent = "SEAT UNAVAILABLE";
+  } else if (cart.includes(seat.id)) {
+    addToCartBtn.disabled = true;
+    addToCartBtn.textContent = "ALREADY IN CART";
+  } else {
+    addToCartBtn.disabled = false;
+    addToCartBtn.textContent = "ADD TO CART";
+  }
+}
+
+function refreshInspectedPanel() {
+  if (inspectedSeatId !== null) {
+    showSeatDetails(seatsById[inspectedSeatId]);
+  }
+  updateAddButton();
+}
+
 function inspectSeat(seatId) {
   const previousButton = seatMap.querySelector(".seat.inspected");
   if (previousButton) {
     previousButton.classList.remove("inspected");
   }
 
-  const newButton = seatMap.querySelector('[data-id="' + seatId + '"]');
-  newButton.classList.add("inspected");
+  findSeatButton(seatId).classList.add("inspected");
 
   inspectedSeatId = seatId;
-  showSeatDetails(seatsById[seatId]);
+  refreshInspectedPanel();
 }
+
+function renderCart() {
+  cartList.innerHTML = "";
+  let total = 0;
+
+  for (const seatId of cart) {
+    const seat = seatsById[seatId];
+    total = total + seat.price;
+
+    const item = document.createElement("li");
+    item.className = "cart-item";
+
+    const info = document.createElement("span");
+    info.className = "cart-item-info";
+    info.textContent = seat.sectionName + " - Row " + seat.row + ", Seat " + seat.number;
+
+    const price = document.createElement("span");
+    price.className = "cart-item-price";
+    price.textContent = seat.price + " " + venue.currency;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "Remove";
+    removeBtn.setAttribute("aria-label", "Remove " + info.textContent + " from cart");
+    removeBtn.addEventListener("click", function () {
+      removeFromCart(seatId);
+    });
+
+    item.appendChild(info);
+    item.appendChild(price);
+    item.appendChild(removeBtn);
+    cartList.appendChild(item);
+  }
+
+  cartEmpty.hidden = cart.length > 0;
+  cartTotal.textContent = total + " " + venue.currency;
+}
+
+function addToCart(seatId) {
+  const seat = seatsById[seatId];
+
+  if (!seat || seat.unavailable || cart.includes(seatId)) {
+    return;
+  }
+
+  cart.push(seatId);
+  findSeatButton(seatId).classList.add("in-cart");
+
+  renderCart();
+  refreshInspectedPanel();
+}
+
+function removeFromCart(seatId) {
+  cart = cart.filter(function (id) {
+    return id !== seatId;
+  });
+
+  findSeatButton(seatId).classList.remove("in-cart");
+
+  renderCart();
+  refreshInspectedPanel();
+}
+
+addToCartBtn.addEventListener("click", function () {
+  if (inspectedSeatId !== null) {
+    addToCart(inspectedSeatId);
+  }
+});
 
 let totalSeats = 0;
 
@@ -115,3 +222,6 @@ for (const section of venue.sections) {
 
 statusMessage.textContent =
   venue.name + " - total seats: " + totalSeats + ". Click a seat to inspect it.";
+
+renderCart();
+updateAddButton();

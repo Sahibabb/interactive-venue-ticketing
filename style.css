@@ -8,6 +8,7 @@ body {
 h1 {
   color: darkblue;
 }
+
 .layout {
   display: flex;
   flex-wrap: wrap;
@@ -57,6 +58,11 @@ h1 {
   font-weight: bold;
 }
 
+.status-incart {
+  color: #8e44ad;
+  font-weight: bold;
+}
+
 #add-to-cart-btn {
   width: 100%;
   margin-top: 15px;
@@ -74,6 +80,50 @@ h1 {
   background-color: #bbbbbb;
   cursor: not-allowed;
 }
+
+.cart-title {
+  margin-top: 30px !important;
+}
+
+.cart-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.cart-item-info {
+  font-size: 14px;
+}
+
+.cart-item-price {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.remove-btn {
+  border: none;
+  background-color: #c0392b;
+  color: white;
+  border-radius: 4px;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+
+.cart-total {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 12px 0 0 0;
+}
+
 .stage {
   background-color: #333;
   color: white;
@@ -131,11 +181,17 @@ h1 {
 .seat:hover {
   outline: 2px solid black;
 }
+
 .seat.unavailable {
   background-color: #bbbbbb;
   color: #777777;
   cursor: not-allowed;
 }
+
+.seat.in-cart {
+  background-color: #8e44ad;
+}
+
 .seat.inspected {
   outline: 3px solid #e74c3c;
   transform: scale(1.2);
