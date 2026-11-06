@@ -23,6 +23,8 @@ const MAX_SCALE = 2.5;
 const ZOOM_FACTOR = 1.25;
 const MOVE_STEP = 80;
 const EDGE_MARGIN = 40;
+const WHEEL_SPEED = 0.0015;
+const DRAG_THRESHOLD = 5;
 
 const seatsById = {};
 let cart = [];
@@ -31,6 +33,13 @@ let inspectedSeatId = null;
 let viewScale = 1;
 let viewX = 0;
 let viewY = 0;
+
+let pointerIsDown = false;
+let dragMoved = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartViewX = 0;
+let dragStartViewY = 0;
 
 function rowLetter(index) {
   return String.fromCharCode(65 + index);
@@ -301,7 +310,7 @@ function applyView() {
   zoomOutBtn.disabled = viewScale <= MIN_SCALE;
 }
 
-function zoomBy(factor) {
+function zoomAt(factor, focusX, focusY) {
   const newScale = clampValue(viewScale * factor, MIN_SCALE, MAX_SCALE);
 
   if (newScale === viewScale) {
@@ -309,14 +318,16 @@ function zoomBy(factor) {
   }
 
   const ratio = newScale / viewScale;
-  const centerX = mapViewport.clientWidth / 2;
-  const centerY = mapViewport.clientHeight / 2;
 
-  viewX = centerX - (centerX - viewX) * ratio;
-  viewY = centerY - (centerY - viewY) * ratio;
+  viewX = focusX - (focusX - viewX) * ratio;
+  viewY = focusY - (focusY - viewY) * ratio;
   viewScale = newScale;
 
   applyView();
+}
+
+function zoomBy(factor) {
+  zoomAt(factor, mapViewport.clientWidth / 2, mapViewport.clientHeight / 2);
 }
 
 function moveBy(dx, dy) {
@@ -333,6 +344,72 @@ function resetView() {
   viewY = 10;
 
   applyView();
+}
+
+function handleWheel(event) {
+  event.preventDefault();
+
+  let delta = event.deltaY;
+
+  if (event.deltaMode === 1) {
+    delta = delta * 16;
+  }
+
+  const rect = mapViewport.getBoundingClientRect();
+  const focusX = event.clientX - rect.left - mapViewport.clientLeft;
+  const focusY = event.clientY - rect.top - mapViewport.clientTop;
+
+  zoomAt(Math.exp(-delta * WHEEL_SPEED), focusX, focusY);
+}
+
+function handlePointerDown(event) {
+  if (event.pointerType !== "mouse" || event.button !== 0) {
+    return;
+  }
+
+  pointerIsDown = true;
+  dragMoved = false;
+  dragStartX = event.clientX;
+  dragStartY = event.clientY;
+  dragStartViewX = viewX;
+  dragStartViewY = viewY;
+}
+
+function handlePointerMove(event) {
+  if (!pointerIsDown) {
+    return;
+  }
+
+  const dx = event.clientX - dragStartX;
+  const dy = event.clientY - dragStartY;
+
+  if (!dragMoved && Math.hypot(dx, dy) < DRAG_THRESHOLD) {
+    return;
+  }
+
+  dragMoved = true;
+  mapViewport.style.cursor = "grabbing";
+
+  viewX = dragStartViewX + dx;
+  viewY = dragStartViewY + dy;
+  applyView();
+}
+
+function handlePointerUp() {
+  if (!pointerIsDown) {
+    return;
+  }
+
+  pointerIsDown = false;
+  mapViewport.style.cursor = "grab";
+}
+
+function handleClickAfterDrag(event) {
+  if (dragMoved) {
+    event.stopPropagation();
+    event.preventDefault();
+    dragMoved = false;
+  }
 }
 
 addToCartBtn.addEventListener("click", function () {
@@ -367,7 +444,19 @@ moveRightBtn.addEventListener("click", function () {
 
 resetViewBtn.addEventListener("click", resetView);
 
+mapViewport.addEventListener("wheel", handleWheel, { passive: false });
+mapViewport.addEventListener("pointerdown", handlePointerDown);
+mapViewport.addEventListener("click", handleClickAfterDrag, true);
+mapViewport.addEventListener("dragstart", function (event) {
+  event.preventDefault();
+});
+window.addEventListener("pointermove", handlePointerMove);
+window.addEventListener("pointerup", handlePointerUp);
+window.addEventListener("pointercancel", handlePointerUp);
 window.addEventListener("resize", applyView);
+
+mapViewport.style.cursor = "grab";
+mapViewport.style.userSelect = "none";
 
 let totalSeats = 0;
 
