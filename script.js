@@ -6,6 +6,8 @@ const cartList = document.getElementById("cart-list");
 const cartEmpty = document.getElementById("cart-empty");
 const cartTotal = document.getElementById("cart-total");
 
+const STORAGE_KEY = "venueTicketingCart";
+
 const seatsById = {};
 let cart = [];
 let inspectedSeatId = null;
@@ -16,6 +18,47 @@ function rowLetter(index) {
 
 function findSeatButton(seatId) {
   return seatMap.querySelector('[data-id="' + seatId + '"]');
+}
+
+function saveCart() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+  } catch (error) {
+    console.error("Could not save the cart:", error);
+  }
+}
+
+function loadCart() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (saved === null) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    const cleaned = [];
+
+    for (const seatId of parsed) {
+      const seat = seatsById[seatId];
+      const isValid = seat && !seat.unavailable;
+      const isDuplicate = cleaned.includes(seatId);
+
+      if (isValid && !isDuplicate) {
+        cleaned.push(seatId);
+      }
+    }
+
+    return cleaned;
+  } catch (error) {
+    console.error("Could not read the saved cart:", error);
+    return [];
+  }
 }
 
 function createSeat(section, rowName, seatNumber) {
@@ -192,6 +235,7 @@ function addToCart(seatId) {
   cart.push(seatId);
   findSeatButton(seatId).classList.add("in-cart");
 
+  saveCart();
   renderCart();
   refreshInspectedPanel();
 }
@@ -203,6 +247,7 @@ function removeFromCart(seatId) {
 
   findSeatButton(seatId).classList.remove("in-cart");
 
+  saveCart();
   renderCart();
   refreshInspectedPanel();
 }
@@ -219,6 +264,14 @@ for (const section of venue.sections) {
   seatMap.appendChild(createSection(section));
   totalSeats = totalSeats + section.rows * section.seatsPerRow;
 }
+
+cart = loadCart();
+
+for (const seatId of cart) {
+  findSeatButton(seatId).classList.add("in-cart");
+}
+
+saveCart();
 
 statusMessage.textContent =
   venue.name + " - total seats: " + totalSeats + ". Click a seat to inspect it.";
