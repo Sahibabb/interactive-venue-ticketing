@@ -12,8 +12,22 @@
 
   <div class="layout">
     <div class="map-area">
-      <div class="stage">STAGE</div>
-      <div id="seat-map" class="venue"></div>
+      <div class="map-controls" role="group" aria-label="Map controls">
+        <button type="button" id="zoom-in-btn">Zoom In +</button>
+        <button type="button" id="zoom-out-btn">Zoom Out -</button>
+        <button type="button" id="move-up-btn">Up &uarr;</button>
+        <button type="button" id="move-down-btn">Down &darr;</button>
+        <button type="button" id="move-left-btn">Left &larr;</button>
+        <button type="button" id="move-right-btn">Right &rarr;</button>
+        <button type="button" id="reset-view-btn" class="reset-btn">Reset / Center</button>
+      </div>
+
+      <div id="map-viewport" class="map-viewport">
+        <div id="map-content" class="map-content">
+          <div class="stage">STAGE</div>
+          <div id="seat-map" class="venue"></div>
+        </div>
+      </div>
     </div>
 
     <aside class="side-panel">

@@ -6,11 +6,31 @@ const cartList = document.getElementById("cart-list");
 const cartEmpty = document.getElementById("cart-empty");
 const cartTotal = document.getElementById("cart-total");
 
+const mapViewport = document.getElementById("map-viewport");
+const mapContent = document.getElementById("map-content");
+const zoomInBtn = document.getElementById("zoom-in-btn");
+const zoomOutBtn = document.getElementById("zoom-out-btn");
+const moveUpBtn = document.getElementById("move-up-btn");
+const moveDownBtn = document.getElementById("move-down-btn");
+const moveLeftBtn = document.getElementById("move-left-btn");
+const moveRightBtn = document.getElementById("move-right-btn");
+const resetViewBtn = document.getElementById("reset-view-btn");
+
 const STORAGE_KEY = "venueTicketingCart";
+
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 2.5;
+const ZOOM_FACTOR = 1.25;
+const MOVE_STEP = 80;
+const EDGE_MARGIN = 40;
 
 const seatsById = {};
 let cart = [];
 let inspectedSeatId = null;
+
+let viewScale = 1;
+let viewX = 0;
+let viewY = 0;
 
 function rowLetter(index) {
   return String.fromCharCode(65 + index);
@@ -252,11 +272,102 @@ function removeFromCart(seatId) {
   refreshInspectedPanel();
 }
 
+function clampValue(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampPosition() {
+  const viewW = mapViewport.clientWidth;
+  const viewH = mapViewport.clientHeight;
+  const contentW = mapContent.offsetWidth * viewScale;
+  const contentH = mapContent.offsetHeight * viewScale;
+
+  const minX = Math.min(0, viewW - contentW) - EDGE_MARGIN;
+  const maxX = Math.max(0, viewW - contentW) + EDGE_MARGIN;
+  const minY = Math.min(0, viewH - contentH) - EDGE_MARGIN;
+  const maxY = Math.max(0, viewH - contentH) + EDGE_MARGIN;
+
+  viewX = clampValue(viewX, minX, maxX);
+  viewY = clampValue(viewY, minY, maxY);
+}
+
+function applyView() {
+  clampPosition();
+
+  mapContent.style.transform =
+    "translate(" + viewX + "px, " + viewY + "px) scale(" + viewScale + ")";
+
+  zoomInBtn.disabled = viewScale >= MAX_SCALE;
+  zoomOutBtn.disabled = viewScale <= MIN_SCALE;
+}
+
+function zoomBy(factor) {
+  const newScale = clampValue(viewScale * factor, MIN_SCALE, MAX_SCALE);
+
+  if (newScale === viewScale) {
+    return;
+  }
+
+  const ratio = newScale / viewScale;
+  const centerX = mapViewport.clientWidth / 2;
+  const centerY = mapViewport.clientHeight / 2;
+
+  viewX = centerX - (centerX - viewX) * ratio;
+  viewY = centerY - (centerY - viewY) * ratio;
+  viewScale = newScale;
+
+  applyView();
+}
+
+function moveBy(dx, dy) {
+  viewX = viewX + dx;
+  viewY = viewY + dy;
+  applyView();
+}
+
+function resetView() {
+  const fitScale = (mapViewport.clientWidth - 20) / mapContent.offsetWidth;
+
+  viewScale = clampValue(Math.min(1, fitScale), MIN_SCALE, MAX_SCALE);
+  viewX = (mapViewport.clientWidth - mapContent.offsetWidth * viewScale) / 2;
+  viewY = 10;
+
+  applyView();
+}
+
 addToCartBtn.addEventListener("click", function () {
   if (inspectedSeatId !== null) {
     addToCart(inspectedSeatId);
   }
 });
+
+zoomInBtn.addEventListener("click", function () {
+  zoomBy(ZOOM_FACTOR);
+});
+
+zoomOutBtn.addEventListener("click", function () {
+  zoomBy(1 / ZOOM_FACTOR);
+});
+
+moveUpBtn.addEventListener("click", function () {
+  moveBy(0, MOVE_STEP);
+});
+
+moveDownBtn.addEventListener("click", function () {
+  moveBy(0, -MOVE_STEP);
+});
+
+moveLeftBtn.addEventListener("click", function () {
+  moveBy(MOVE_STEP, 0);
+});
+
+moveRightBtn.addEventListener("click", function () {
+  moveBy(-MOVE_STEP, 0);
+});
+
+resetViewBtn.addEventListener("click", resetView);
+
+window.addEventListener("resize", applyView);
 
 let totalSeats = 0;
 
@@ -278,3 +389,4 @@ statusMessage.textContent =
 
 renderCart();
 updateAddButton();
+resetView();

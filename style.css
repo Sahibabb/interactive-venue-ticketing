@@ -21,6 +21,47 @@ h1 {
   min-width: 0;
 }
 
+.map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.map-controls button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: darkblue;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.map-controls button:disabled {
+  background-color: #bbbbbb;
+  cursor: not-allowed;
+}
+
+.map-controls .reset-btn {
+  background-color: #555555;
+}
+
+.map-viewport {
+  position: relative;
+  height: min(70vh, 560px);
+  min-height: 300px;
+  overflow: hidden;
+  background-color: white;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+}
+
+.map-content {
+  width: 620px;
+  transform-origin: 0 0;
+}
+
 .side-panel {
   flex: 1 1 260px;
   max-width: 340px;
@@ -35,7 +76,7 @@ h1 {
 }
 
 .hint {
-  color: #666;
+  color: #666666;
 }
 
 .detail-line {
@@ -125,7 +166,7 @@ h1 {
 }
 
 .stage {
-  background-color: #333;
+  background-color: #333333;
   color: white;
   text-align: center;
   padding: 12px;
@@ -139,7 +180,6 @@ h1 {
   background-color: white;
   border-radius: 8px;
   padding: 15px;
-  overflow-x: auto;
 }
 
 .section {
@@ -163,7 +203,7 @@ h1 {
 .row-label {
   width: 20px;
   font-size: 12px;
-  color: #555;
+  color: #555555;
 }
 
 .seat {
