@@ -22,10 +22,18 @@
         <button type="button" id="reset-view-btn" class="reset-btn">Reset / Center</button>
       </div>
 
+      <ul class="legend" aria-label="Seat legend">
+        <li><span class="legend-box legend-available"></span> Available</li>
+        <li><span class="legend-box legend-inspected"></span> Inspected</li>
+        <li><span class="legend-box legend-incart"></span> In cart</li>
+        <li><span class="legend-box legend-unavailable"></span> Unavailable</li>
+      </ul>
+
       <div id="map-viewport" class="map-viewport">
         <div id="map-content" class="map-content">
           <div class="stage">STAGE</div>
           <div id="seat-map" class="venue"></div>
+          <div class="entrance">ENTRANCE</div>
         </div>
       </div>
     </div>
