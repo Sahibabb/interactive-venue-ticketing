@@ -2,6 +2,8 @@
 
 A front-end ticket selection website for a theatre, built with HTML, CSS and JavaScript for the Web & Mobile I course.
 
+![Venue screenshot](images/venue.png)
+
 ## Venue
 
 **Baku Grand Theatre** (auditorium / theatre type)
